@@ -11,7 +11,7 @@ This code chunk calls any relevant libraries and setting options.
 ```{r, message = FALSE}
 library(tidyverse)
 library(p8105.datasets)
-library(ggridges)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -47,13 +47,13 @@ This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns. 
 
 The following code is to check how many aisles.
 
-```{r}
+```{r, message = FALSE, results = FALSE}
 instacart %>% 
   count(aisle) %>% 
   arrange(desc(n))
 ```
 
-Let's make a plot!
+Now, we need to make a plot of the number of orders purchased per aisle.
 
 ```{r}
 instacart %>% 
@@ -65,7 +65,13 @@ instacart %>%
   ) %>% 
   ggplot(aes(x = aisle, y = n)) + 
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(
+    title = "Aisle order plot",
+    x = "Aisle names",
+    y = "Number of orders",
+    caption = "Data from instacart."
+    )
 ```
 
 Let's make a table!
@@ -84,7 +90,7 @@ instacart %>%
 
 Apples vs ice cream ... 
 
-```{r}
+```{r, message = FALSE}
 instacart %>% 
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
   group_by(product_name, order_dow) %>% 
@@ -100,16 +106,16 @@ instacart %>%
 
 The following code is to load in the accelerometer data.
 
-```{r message=FALSE}
+```{r, message=FALSE}
 accel_df = 
   read_csv("./problem2/accel_data.csv",
            na = "") %>% 
   janitor::clean_names() %>% 
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity",
+    names_to = "minute",
     names_prefix = "activity_",
-    values_to = "measures"
+    values_to = "activity_count"
   ) %>% 
   mutate(
     day_type = recode(
@@ -129,39 +135,39 @@ accel_df =
                                       "Friday",
                                       "Saturday",
                                       "Sunday")),
-    activity = as.integer(activity)
+    minute = as.integer(minute)
   )
 ```
 
-This dataset includes accelerometer data collected from a 65 year old patient. The variables included are `r names(accel_df)`. There are a total of `r nrow(accel_df)` rows and `r ncol(accel_df)` columns. The total number of **activity** measurements taken is `r max(pull(accel_df, activity))`. Measurements were taken every `r levels(pull(accel_df, day))`, for a total of `r max(pull(accel_df, week))` weeks and `r max(pull(accel_df, day_id))` days.
+This dataset includes accelerometer data collected from a 65 year old patient. Observations correspond to activity counts over the course of 24 hours. The variables included are `r names(accel_df)`. There are a total of `r nrow(accel_df)` rows and `r ncol(accel_df)` columns. Activity counts were taken every minute of the day, for a total of `r max(pull(accel_df, minute))` minutes. Measurements were taken every `r levels(pull(accel_df, day))`, for a total of `r max(pull(accel_df, week))` weeks and `r max(pull(accel_df, day_id))` days.
 
-The value of the accelerometer readings as per the **measures** variable ranges from `r min(pull(accel_df, measures))` to `r max(pull(accel_df, measures))`. The mean of the accelerometer readings is `r mean(pull(accel_df, measures), n = 2)`, with a standard deviation of `r sd(pull(accel_df, measures), n = 2)`. The median is `r median(pull(accel_df, measures), n = 2)`, with an IQR of `r IQR(pull(accel_df, measures), n = 2)`. 
+The value of the accelerometer readings as per the activity_count variable ranges from `r min(pull(accel_df, activity_count))` to `r max(pull(accel_df, activity_count))`. The mean of the accelerometer readings is `r mean(pull(accel_df, activity_count), n = 2)`, with a standard deviation of `r sd(pull(accel_df, activity_count), n = 2)`. The median is `r median(pull(accel_df, activity_count), n = 2)`, with an IQR of `r IQR(pull(accel_df, activity_count), n = 2)`. 
 
 ### Aggregating data
 
 The following code makes a table, aggregated by total activity per day.
 
-```{r message=FALSE}
+```{r, message = FALSE}
 accel_agg = 
   accel_df %>% 
   group_by(day) %>% 
   summarize(
-    total_activity = sum(measures)
+    total_activity = sum(activity_count)
   ) %>% 
   knitr::kable(digits = 1)
 ```
 
 It seems that the patient is the least active on Saturdays, and the most active on Fridays. The patient is somewhat active on Mondays, Tuesdays, and Sundays but more active on Wednesdays, Thursdays and Fridays.
 
-```{r message = FALSE}
+```{r, message = FALSE}
 accel_df %>% 
   group_by(day_id, day) %>% 
-  summarize(
-    activity_time = sum(measures)
-  ) %>% 
-  ggplot(aes(x = activity_time, color = day)) +
-  geom_density()
+  ggplot(aes(x = minute, y = activity_count, color = day)) +
+  geom_line()
 ```
+
+**Want to see what activity looks like in each minute of each day
+Minute on the x axis, activity count on the y axis
 
 ## Problem 3
 
@@ -173,5 +179,67 @@ data("ny_noaa")
 
 The following code cleans and tidies the data.
 
+```{r, message = FALSE}
+noaa_clean = 
+  ny_noaa %>% 
+  janitor::clean_names() %>% 
+  drop_na() %>% 
+  separate(
+    date,
+    sep = "-",
+    into = c("year", "month", "day")
+  ) %>% 
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month),
+    day = as.integer(day),
+    prcp = prcp/10,
+    tmax = as.integer(tmax)/10,
+    tmin = as.integer(tmin)/10
+  )
+```
 
+```{r, message = FALSE}
+noaa_clean %>% 
+  count(snow) %>% 
+  arrange(desc(n))
+```
 
+The most common observed value for snowfall is 0 mm of snowfall. The secondmost common value for snowfall is 25mm. This could suggest either seasonality of snowfall, or that some weather stations are located in areas that are less likely to have snowfall compared to others.
+
+The following code makes a two-panel plot showing the average max temperature in January and July.
+
+```{r}
+noaa_clean %>% 
+  group_by(id, year, month) %>% 
+  summarize(
+    average = mean(tmax)
+  ) %>% 
+  filter(month %in% c("6", "7")) %>% 
+  ggplot(aes(x = id, y = average, color = year)) +
+  geom_point(alpha = 0.5, size = 0.5) +
+  facet_grid(. ~ month)
+```
+
+Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
+
+```{r}
+tmax_tmin_plot = 
+  noaa_clean %>% 
+  select(tmax, tmin) %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex() +
+  theme(legend.position = "none")
+
+snow_dens_plot = 
+  noaa_clean %>% 
+  filter(
+    snow < 100,
+    snow > 0
+  ) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_violin() +
+  theme(legend.position = "none")
+
+tmax_tmin_plot / snow_dens_plot
+```

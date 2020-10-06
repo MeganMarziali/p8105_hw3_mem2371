@@ -9,7 +9,7 @@ This code chunk calls any relevant libraries and setting options.
 ``` r
 library(tidyverse)
 library(p8105.datasets)
-library(ggridges)
+library(patchwork)
 
 knitr::opts_chunk$set(
   fig.width = 6,
@@ -53,22 +53,7 @@ instacart %>%
   arrange(desc(n))
 ```
 
-    ## # A tibble: 134 x 2
-    ##    aisle                              n
-    ##    <chr>                          <int>
-    ##  1 fresh vegetables              150609
-    ##  2 fresh fruits                  150473
-    ##  3 packaged vegetables fruits     78493
-    ##  4 yogurt                         55240
-    ##  5 packaged cheese                41699
-    ##  6 water seltzer sparkling water  36617
-    ##  7 milk                           32644
-    ##  8 chips pretzels                 31269
-    ##  9 soy lactosefree                26240
-    ## 10 bread                          23635
-    ## # … with 124 more rows
-
-Let’s make a plot\!
+Now, we need to make a plot of the number of orders purchased per aisle.
 
 ``` r
 instacart %>% 
@@ -80,7 +65,13 @@ instacart %>%
   ) %>% 
   ggplot(aes(x = aisle, y = n)) + 
   geom_point() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1)) +
+  labs(
+    title = "Aisle order plot",
+    x = "Aisle names",
+    y = "Number of orders",
+    caption = "Data from instacart."
+    )
 ```
 
 <img src="hw3_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
@@ -124,8 +115,6 @@ instacart %>%
   )
 ```
 
-    ## `summarise()` regrouping output by 'product_name' (override with `.groups` argument)
-
     ## # A tibble: 2 x 8
     ## # Groups:   product_name [2]
     ##   product_name       `0`   `1`   `2`   `3`   `4`   `5`   `6`
@@ -144,9 +133,9 @@ accel_df =
   janitor::clean_names() %>% 
   pivot_longer(
     activity_1:activity_1440,
-    names_to = "activity",
+    names_to = "minute",
     names_prefix = "activity_",
-    values_to = "measures"
+    values_to = "activity_count"
   ) %>% 
   mutate(
     day_type = recode(
@@ -166,21 +155,23 @@ accel_df =
                                       "Friday",
                                       "Saturday",
                                       "Sunday")),
-    activity = as.integer(activity)
+    minute = as.integer(minute)
   )
 ```
 
 This dataset includes accelerometer data collected from a 65 year old
-patient. The variables included are week, day\_id, day, activity,
-measures, day\_type. There are a total of 50400 rows and 6 columns. The
-total number of **activity** measurements taken is 1440. Measurements
-were taken every Monday, Tuesday, Wednesday, Thursday, Friday, Saturday,
-Sunday, for a total of 5 weeks and 35 days.
+patient. Observations correspond to activity counts over the course of
+24 hours. The variables included are week, day\_id, day, minute,
+activity\_count, day\_type. There are a total of 50400 rows and 6
+columns. Activity counts were taken every minute of the day, for a total
+of 1440 minutes. Measurements were taken every Monday, Tuesday,
+Wednesday, Thursday, Friday, Saturday, Sunday, for a total of 5 weeks
+and 35 days.
 
-The value of the accelerometer readings as per the **measures** variable
-ranges from 1 to 8982. The mean of the accelerometer readings is
-267.0440592, with a standard deviation of 443.1575016. The median is 74,
-with an IQR of 363.
+The value of the accelerometer readings as per the activity\_count
+variable ranges from 1 to 8982. The mean of the accelerometer readings
+is 267.0440592, with a standard deviation of 443.1575016. The median is
+74, with an IQR of 363.
 
 ### Aggregating data
 
@@ -191,7 +182,7 @@ accel_agg =
   accel_df %>% 
   group_by(day) %>% 
   summarize(
-    total_activity = sum(measures)
+    total_activity = sum(activity_count)
   ) %>% 
   knitr::kable(digits = 1)
 ```
@@ -203,14 +194,14 @@ and Sundays but more active on Wednesdays, Thursdays and Fridays.
 ``` r
 accel_df %>% 
   group_by(day_id, day) %>% 
-  summarize(
-    activity_time = sum(measures)
-  ) %>% 
-  ggplot(aes(x = activity_time, color = day)) +
-  geom_density()
+  ggplot(aes(x = minute, y = activity_count, color = day)) +
+  geom_line()
 ```
 
 <img src="hw3_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+
+\*\*Want to see what activity looks like in each minute of each day
+Minute on the x axis, activity count on the y axis
 
 ## Problem 3
 
@@ -221,3 +212,95 @@ data("ny_noaa")
 ```
 
 The following code cleans and tidies the data.
+
+``` r
+noaa_clean = 
+  ny_noaa %>% 
+  janitor::clean_names() %>% 
+  drop_na() %>% 
+  separate(
+    date,
+    sep = "-",
+    into = c("year", "month", "day")
+  ) %>% 
+  mutate(
+    year = as.integer(year),
+    month = as.integer(month),
+    day = as.integer(day),
+    prcp = prcp/10,
+    tmax = as.integer(tmax)/10,
+    tmin = as.integer(tmin)/10
+  )
+```
+
+``` r
+noaa_clean %>% 
+  count(snow) %>% 
+  arrange(desc(n))
+```
+
+    ## # A tibble: 248 x 2
+    ##     snow       n
+    ##    <int>   <int>
+    ##  1     0 1112758
+    ##  2    25   15809
+    ##  3    13   12460
+    ##  4    51    9252
+    ##  5     5    5669
+    ##  6     8    5380
+    ##  7    76    5296
+    ##  8     3    5276
+    ##  9    38    5050
+    ## 10   102    3386
+    ## # … with 238 more rows
+
+The most common observed value for snowfall is 0 mm of snowfall. The
+secondmost common value for snowfall is 25mm. This could suggest either
+seasonality of snowfall, or that some weather stations are located in
+areas that are less likely to have snowfall compared to others.
+
+The following code makes a two-panel plot showing the average max
+temperature in January and July.
+
+``` r
+noaa_clean %>% 
+  group_by(id, year, month) %>% 
+  summarize(
+    average = mean(tmax)
+  ) %>% 
+  filter(month %in% c("6", "7")) %>% 
+  ggplot(aes(x = id, y = average, color = year)) +
+  geom_point(alpha = 0.5, size = 0.5) +
+  facet_grid(. ~ month)
+```
+
+    ## `summarise()` regrouping output by 'id', 'year' (override with `.groups` argument)
+
+<img src="hw3_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
+
+Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing
+the distribution of snowfall values greater than 0 and less than 100
+separately by year
+
+``` r
+tmax_tmin_plot = 
+  noaa_clean %>% 
+  select(tmax, tmin) %>% 
+  ggplot(aes(x = tmax, y = tmin)) +
+  geom_hex() +
+  theme(legend.position = "none")
+
+snow_dens_plot = 
+  noaa_clean %>% 
+  filter(
+    snow < 100,
+    snow > 0
+  ) %>% 
+  ggplot(aes(x = year, y = snow)) +
+  geom_violin() +
+  theme(legend.position = "none")
+
+tmax_tmin_plot / snow_dens_plot
+```
+
+<img src="hw3_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />
