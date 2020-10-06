@@ -111,6 +111,28 @@ instacart %>%
 | packaged vegetables fruits | Organic Raspberries                           | 5546 |    2 |
 | packaged vegetables fruits | Organic Blueberries                           | 4966 |    3 |
 
+Apples vs ice cream …
+
+``` r
+instacart %>% 
+  filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) %>% 
+  group_by(product_name, order_dow) %>% 
+  summarize(mean_hour = mean(order_hour_of_day)) %>% 
+  pivot_wider(
+    names_from = order_dow,
+    values_from = mean_hour
+  )
+```
+
+    ## `summarise()` regrouping output by 'product_name' (override with `.groups` argument)
+
+    ## # A tibble: 2 x 8
+    ## # Groups:   product_name [2]
+    ##   product_name       `0`   `1`   `2`   `3`   `4`   `5`   `6`
+    ##   <chr>            <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
+    ## 1 Coffee Ice Cream  13.8  14.3  15.4  15.3  15.2  12.3  13.8
+    ## 2 Pink Lady Apples  13.4  11.4  11.7  14.2  11.6  12.8  11.9
+
 ## Problem 2
 
 The following code is to load in the accelerometer data.
@@ -188,7 +210,7 @@ accel_df %>%
   geom_density()
 ```
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
+<img src="hw3_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
 
 ## Problem 3
 
