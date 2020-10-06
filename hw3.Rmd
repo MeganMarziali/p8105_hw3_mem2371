@@ -4,13 +4,30 @@ author: Megan Marziali
 output: github_document
 ---
 
-# Beginning infrastructure
+## Beginning infrastructure
 
-This code chunk calls any relevant libraries.
+This code chunk calls any relevant libraries and setting options.
 
 ```{r, message = FALSE}
 library(tidyverse)
 library(p8105.datasets)
+library(ggridges)
+
+knitr::optrs_chunk$set(
+  fig.width = 6,
+  fig.asp = 0.6,
+  out.width = "90%"
+)
+
+theme_set(theme_minimal() + theme(legend.position = "bottom"))
+
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+scale_colour_discrete = scale_color_viridis_d
+scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
@@ -34,7 +51,7 @@ The following code is to check how many aisles.
 
 The following code is to load in the accelerometer data.
 
-```{r}
+```{r message=FALSE}
 accel_df = 
   read_csv("./problem2/accel_data.csv",
            na = "") %>% 
@@ -65,25 +82,38 @@ accel_df =
                                       "Sunday")),
     activity = as.integer(activity)
   )
-
-
 ```
 
-This dataset includes accelerometer data collected from a 65 year old patient over the course of five weeks. The variables included are `r names(accel_df)`. There are a total of `r nrows(accel_df)` rows and `r ncol(accel_df)` columns. 
+This dataset includes accelerometer data collected from a 65 year old patient. The variables included are `r names(accel_df)`. There are a total of `r nrow(accel_df)` rows and `r ncol(accel_df)` columns. The total number of **activity** measurements taken is `r max(pull(accel_df, activity))`. Measurements were taken every `r levels(pull(accel_df, day))`, for a total of `r max(pull(accel_df, week))` weeks and `r max(pull(accel_df, day_id))` days.
 
-The maximum number of activity measurements taken each day is `r max(pull(accel_df, activity))`. 
+The value of the accelerometer readings as per the **measures** variable ranges from `r min(pull(accel_df, measures))` to `r max(pull(accel_df, measures))`. The mean of the accelerometer readings is `r mean(pull(accel_df, measures), n = 2)`, with a standard deviation of `r sd(pull(accel_df, measures), n = 2)`. The median is `r median(pull(accel_df, measures), n = 2)`, with an IQR of `r IQR(pull(accel_df, measures), n = 2)`. 
 
-The value of the accelerometer readings ranges from `r min(pull(accel_df, measures))` to `r max(pull(accel_df, measures))`. The mean of the accelerometer readings is `r mean(pull(accel_df, measures))`, with a standard deviation of `r sd(pull(accel_df, measures))`. The median is `r median(pull(accel_df, measures))`, with an IQR of `r IQR(pull(accel_df, measures))`. 
+### Aggregating data
 
-The following code makes a table.
+The following code makes a table, aggregated by total activity per day.
+
+```{r}
+accel_agg = 
+  accel_df %>% 
+  group_by(day) %>% 
+  summarize(
+    total_activity = sum(measures)
+  ) %>% 
+  knitr::kable(digits = 1)
+```
+
+It seems that the patient is the least active on Saturdays, and the most active on Fridays. The patient is somewhat active on Mondays, Tuesdays, and Sundays but more active on Wednesdays, Thursdays and Fridays.
 
 ```{r}
 accel_df %>% 
-  group_by(day_id) %>% 
+  group_by(day_id, day) %>% 
   summarize(
-    total_activity = sum(measures)
-  )
+    activity_time = sum(measures)
+  ) %>% 
+  ggplot(aes(x = activity_time, color = day)) +
+  geom_density()
 ```
+
 
 
 
