@@ -13,7 +13,7 @@ library(tidyverse)
 library(p8105.datasets)
 library(ggridges)
 
-knitr::optrs_chunk$set(
+knitr::opts_chunk$set(
   fig.width = 6,
   fig.asp = 0.6,
   out.width = "90%"
@@ -92,7 +92,7 @@ The value of the accelerometer readings as per the **measures** variable ranges 
 
 The following code makes a table, aggregated by total activity per day.
 
-```{r}
+```{r message=FALSE}
 accel_agg = 
   accel_df %>% 
   group_by(day) %>% 
@@ -104,7 +104,7 @@ accel_agg =
 
 It seems that the patient is the least active on Saturdays, and the most active on Fridays. The patient is somewhat active on Mondays, Tuesdays, and Sundays but more active on Wednesdays, Thursdays and Fridays.
 
-```{r}
+```{r message = FALSE}
 accel_df %>% 
   group_by(day_id, day) %>% 
   summarize(
