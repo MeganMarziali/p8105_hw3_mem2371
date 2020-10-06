@@ -41,11 +41,47 @@ The following code chunk loads the Instacart dataset
 data("instacart")
 ```
 
-The variables included in the instacart dataset are `r names(instacart)`. There are a total of `r nrow(instacart)` observations, and `r ncol(instacart)` variables.
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns. Obervations are the level of items in orders by users. There are user / order variables -- user_id, order id, order day, and order hour. There are also item variables -- name, aisle, department and some numeric codes.
 
 #### Answering specific questions
 
 The following code is to check how many aisles.
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+Let's make a plot!
+
+```{r}
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+Let's make a table!
+
+```{r}
+instacart %>% 
+  filter(aisle %in% c(
+    "baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable()
+```
+
 
 ## Problem 2
 

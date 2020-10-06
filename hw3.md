@@ -38,16 +38,78 @@ The following code chunk loads the Instacart dataset
 data("instacart")
 ```
 
-The variables included in the instacart dataset are order\_id,
-product\_id, add\_to\_cart\_order, reordered, user\_id, eval\_set,
-order\_number, order\_dow, order\_hour\_of\_day,
-days\_since\_prior\_order, product\_name, aisle\_id, department\_id,
-aisle, department. There are a total of 1384617 observations, and 15
-variables.
+This dataset contains 1384617 rows and 15 columns. Obervations are the
+level of items in orders by users. There are user / order variables –
+user\_id, order id, order day, and order hour. There are also item
+variables – name, aisle, department and some numeric codes.
 
 #### Answering specific questions
 
 The following code is to check how many aisles.
+
+``` r
+instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n))
+```
+
+    ## # A tibble: 134 x 2
+    ##    aisle                              n
+    ##    <chr>                          <int>
+    ##  1 fresh vegetables              150609
+    ##  2 fresh fruits                  150473
+    ##  3 packaged vegetables fruits     78493
+    ##  4 yogurt                         55240
+    ##  5 packaged cheese                41699
+    ##  6 water seltzer sparkling water  36617
+    ##  7 milk                           32644
+    ##  8 chips pretzels                 31269
+    ##  9 soy lactosefree                26240
+    ## 10 bread                          23635
+    ## # … with 124 more rows
+
+Let’s make a plot\!
+
+``` r
+instacart %>% 
+  count(aisle) %>% 
+  filter(n > 10000) %>% 
+  mutate(
+    aisle = factor(aisle),
+    aisle = fct_reorder(aisle, n)
+  ) %>% 
+  ggplot(aes(x = aisle, y = n)) + 
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+```
+
+<img src="hw3_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
+
+Let’s make a table\!
+
+``` r
+instacart %>% 
+  filter(aisle %in% c(
+    "baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
+  group_by(aisle) %>% 
+  count(product_name) %>% 
+  mutate(rank = min_rank(desc(n))) %>% 
+  filter(rank < 4) %>% 
+  arrange(aisle, rank) %>% 
+  knitr::kable()
+```
+
+| aisle                      | product\_name                                 |    n | rank |
+| :------------------------- | :-------------------------------------------- | ---: | ---: |
+| baking ingredients         | Light Brown Sugar                             |  499 |    1 |
+| baking ingredients         | Pure Baking Soda                              |  387 |    2 |
+| baking ingredients         | Cane Sugar                                    |  336 |    3 |
+| dog food care              | Snack Sticks Chicken & Rice Recipe Dog Treats |   30 |    1 |
+| dog food care              | Organix Chicken & Brown Rice Recipe           |   28 |    2 |
+| dog food care              | Small Dog Biscuits                            |   26 |    3 |
+| packaged vegetables fruits | Organic Baby Spinach                          | 9784 |    1 |
+| packaged vegetables fruits | Organic Raspberries                           | 5546 |    2 |
+| packaged vegetables fruits | Organic Blueberries                           | 4966 |    3 |
 
 ## Problem 2
 
@@ -126,7 +188,7 @@ accel_df %>%
   geom_density()
 ```
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-5-1.png" width="90%" />
+<img src="hw3_files/figure-gfm/unnamed-chunk-8-1.png" width="90%" />
 
 ## Problem 3
 
