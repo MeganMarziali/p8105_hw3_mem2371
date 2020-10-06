@@ -114,7 +114,15 @@ accel_df %>%
   geom_density()
 ```
 
+## Problem 3
 
+The following code loads in the appropriate dataset.
+
+```{r}
+data("ny_noaa")
+```
+
+The following code cleans and tidies the data.
 
 
 
