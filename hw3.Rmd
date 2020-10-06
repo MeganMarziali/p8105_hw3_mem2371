@@ -62,10 +62,18 @@ accel_df =
                                       "Thursday",
                                       "Friday",
                                       "Saturday",
-                                      "Sunday"))
+                                      "Sunday")),
+    activity = as.integer(activity)
   )
+
+
 ```
 
+This dataset includes accelerometer data collected from a 65 year old patient over the course of five weeks. The variables included are `r names(accel_df)`. There are a total of `r nrows(accel_df)` rows and `r ncol(accel_df)` columns. 
+
+The maximum number of activity measurements taken each day is `r max(pull(accel_df, activity))`. 
+
+The value of the accelerometer readings ranges from `r min(pull(accel_df, measures))` to `r max(pull(accel_df, measures))`. The mean of the accelerometer readings is `r mean(pull(accel_df, measures))`, with a standard deviation of `r sd(pull(accel_df, measures))`. The median is `r median(pull(accel_df, measures))`, with an IQR of `r IQR(pull(accel_df, measures))`. 
 
 The following code makes a table.
 
