@@ -1,0 +1,82 @@
+---
+title: "Homework 3"
+author: Megan Marziali
+output: github_document
+---
+
+# Beginning infrastructure
+
+This code chunk calls any relevant libraries.
+
+```{r, message = FALSE}
+library(tidyverse)
+library(p8105.datasets)
+```
+
+
+## Problem 1
+
+#### Loading instacart dataset
+
+The following code chunk loads the Instacart dataset
+
+```{r}
+data("instacart")
+```
+
+The variables included in the instacart dataset are `r names(instacart)`. There are a total of `r nrow(instacart)` observations, and `r ncol(instacart)` variables.
+
+#### Answering specific questions
+
+The following code is to check how many aisles.
+
+## Problem 2
+
+The following code is to load in the accelerometer data.
+
+```{r}
+accel_df = 
+  read_csv("./problem2/accel_data.csv",
+           na = "") %>% 
+  janitor::clean_names() %>% 
+  pivot_longer(
+    activity_1:activity_1440,
+    names_to = "activity",
+    names_prefix = "activity_",
+    values_to = "measures"
+  ) %>% 
+  mutate(
+    day_type = recode(
+      day, 
+      Monday = "Weekday",
+      Tuesday = "Weekday",
+      Wednesday = "Weekday",
+      Thursday = "Weekday",
+      Friday = "Weekday", 
+      Saturday = "Weekend",
+      Sunday = "Weekend"),
+    day = factor(day),
+    day = forcats::fct_relevel(day, c("Monday",
+                                      "Tuesday",
+                                      "Wednesday",
+                                      "Thursday",
+                                      "Friday",
+                                      "Saturday",
+                                      "Sunday"))
+  )
+```
+
+
+The following code makes a table.
+
+```{r}
+accel_df %>% 
+  group_by(day_id) %>% 
+  summarize(
+    total_activity = sum(measures)
+  )
+```
+
+
+
+
