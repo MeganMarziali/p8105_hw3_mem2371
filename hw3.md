@@ -28,7 +28,7 @@ scale_colour_discrete = scale_color_viridis_d
 scale_fill_discrete = scale_fill_viridis_d
 ```
 
-## Problem 1
+## Problem 1: Instacart
 
 #### Loading instacart dataset
 
@@ -38,14 +38,15 @@ The following code chunk loads the Instacart dataset
 data("instacart")
 ```
 
-This dataset contains 1384617 rows and 15 columns. Obervations are the
-level of items in orders by users. There are user / order variables –
-user\_id, order id, order day, and order hour. There are also item
-variables – name, aisle, department and some numeric codes.
+This dataset contains 1384617 rows and 15 columns. Observations are the
+level of items in orders by users of instacart. There are user and order
+variables – user\_id, order id, order day, and order hour. There are
+also item variables – name, aisle, department and some numeric codes.
 
 #### Answering specific questions
 
-The following code is to check how many aisles.
+The following code is to check how many aisles there are which are
+ordered from.
 
 ``` r
 instacart %>% 
@@ -74,9 +75,9 @@ instacart %>%
     )
 ```
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-4-1.png" width="90%" />
+<img src="hw3_files/figure-gfm/plot_aisles-1.png" width="90%" />
 
-Let’s make a table\!
+The next step is to make a table showing the most popular items.
 
 ``` r
 instacart %>% 
@@ -102,7 +103,8 @@ instacart %>%
 | packaged vegetables fruits | Organic Raspberries                           | 5546 |    2 |
 | packaged vegetables fruits | Organic Blueberries                           | 4966 |    3 |
 
-Apples vs ice cream …
+The next step is to make a table of the mean hour at which specific
+items are ordered.
 
 ``` r
 instacart %>% 
@@ -112,17 +114,16 @@ instacart %>%
   pivot_wider(
     names_from = order_dow,
     values_from = mean_hour
-  )
+  ) %>% 
+  knitr::kable()
 ```
 
-    ## # A tibble: 2 x 8
-    ## # Groups:   product_name [2]
-    ##   product_name       `0`   `1`   `2`   `3`   `4`   `5`   `6`
-    ##   <chr>            <dbl> <dbl> <dbl> <dbl> <dbl> <dbl> <dbl>
-    ## 1 Coffee Ice Cream  13.8  14.3  15.4  15.3  15.2  12.3  13.8
-    ## 2 Pink Lady Apples  13.4  11.4  11.7  14.2  11.6  12.8  11.9
+| product\_name    |        0 |        1 |        2 |        3 |        4 |        5 |        6 |
+| :--------------- | -------: | -------: | -------: | -------: | -------: | -------: | -------: |
+| Coffee Ice Cream | 13.77419 | 14.31579 | 15.38095 | 15.31818 | 15.21739 | 12.26316 | 13.83333 |
+| Pink Lady Apples | 13.44118 | 11.36000 | 11.70213 | 14.25000 | 11.55172 | 12.78431 | 11.93750 |
 
-## Problem 2
+## Problem 2: Accelerometer
 
 The following code is to load in the accelerometer data.
 
@@ -178,34 +179,73 @@ is 267.0440592, with a standard deviation of 443.1575016. The median is
 The following code makes a table, aggregated by total activity per day.
 
 ``` r
-accel_agg = 
-  accel_df %>% 
-  group_by(day) %>% 
+accel_df %>% 
+  group_by(day_id, day) %>% 
   summarize(
     total_activity = sum(activity_count)
   ) %>% 
+  arrange(desc(total_activity)) %>% 
   knitr::kable(digits = 1)
 ```
 
+| day\_id | day       | total\_activity |
+| ------: | :-------- | --------------: |
+|      16 | Monday    |        685910.0 |
+|       4 | Sunday    |        631105.0 |
+|      29 | Friday    |        620860.0 |
+|      10 | Saturday  |        607175.0 |
+|       8 | Friday    |        568839.0 |
+|      33 | Thursday  |        549658.0 |
+|       1 | Friday    |        480542.6 |
+|      12 | Thursday  |        474048.0 |
+|      21 | Wednesday |        468869.0 |
+|      15 | Friday    |        467420.0 |
+|      18 | Sunday    |        467052.0 |
+|      35 | Wednesday |        445366.0 |
+|      14 | Wednesday |        440962.0 |
+|      28 | Wednesday |        434460.0 |
+|      13 | Tuesday   |        423245.0 |
+|      11 | Sunday    |        422018.0 |
+|      23 | Monday    |        409450.0 |
+|      30 | Monday    |        389080.0 |
+|      17 | Saturday  |        382928.0 |
+|      20 | Tuesday   |        381507.0 |
+|       3 | Saturday  |        376254.0 |
+|      19 | Thursday  |        371230.0 |
+|      34 | Tuesday   |        367824.0 |
+|       5 | Thursday  |        355923.6 |
+|      26 | Thursday  |        340291.0 |
+|       7 | Wednesday |        340115.0 |
+|      27 | Tuesday   |        319568.0 |
+|       6 | Tuesday   |        307094.2 |
+|       9 | Monday    |        295431.0 |
+|      25 | Sunday    |        260617.0 |
+|      22 | Friday    |        154049.0 |
+|      32 | Sunday    |        138421.0 |
+|       2 | Monday    |         78828.1 |
+|      24 | Saturday  |          1440.0 |
+|      31 | Saturday  |          1440.0 |
+
 It seems that the patient is the least active on Saturdays, and the most
-active on Fridays. The patient is somewhat active on Mondays, Tuesdays,
-and Sundays but more active on Wednesdays, Thursdays and Fridays.
+active on Fridays.
 
 ``` r
 accel_df %>% 
   group_by(day_id, day) %>% 
   ggplot(aes(x = minute, y = activity_count, color = day)) +
-  geom_line()
+  geom_line(alpha = 0.5) +
+  geom_smooth()
 ```
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-9-1.png" width="90%" />
+<img src="hw3_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
 
-\*\*Want to see what activity looks like in each minute of each day
-Minute on the x axis, activity count on the y axis
+It seems that the patient is active more during the day on Sundays, and
+more active in the evening on Fridays. The time at which the patient is
+most active depends on the day.
 
-## Problem 3
+## Problem 3: NY NOAA
 
-The following code loads in the appropriate dataset.
+The following code loads in the NY NOAA dataset.
 
 ``` r
 data("ny_noaa")
@@ -233,6 +273,9 @@ noaa_clean =
   )
 ```
 
+The following code assesses the most commonly observed values for
+snowfall.
+
 ``` r
 noaa_clean %>% 
   count(snow) %>% 
@@ -255,7 +298,7 @@ noaa_clean %>%
     ## # … with 238 more rows
 
 The most common observed value for snowfall is 0 mm of snowfall. The
-secondmost common value for snowfall is 25mm. This could suggest either
+second most common value for snowfall is 25mm. This could suggest either
 seasonality of snowfall, or that some weather stations are located in
 areas that are less likely to have snowfall compared to others.
 
@@ -263,20 +306,36 @@ The following code makes a two-panel plot showing the average max
 temperature in January and July.
 
 ``` r
-noaa_clean %>% 
-  group_by(id, year, month) %>% 
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name)
+
+noaa_month = 
+  left_join(noaa_clean, month_df, by = "month") %>% 
+  select(-month)
+
+noaa_month %>% 
+  group_by(id, year, month_name) %>% 
   summarize(
     average = mean(tmax)
   ) %>% 
-  filter(month %in% c("6", "7")) %>% 
-  ggplot(aes(x = id, y = average, color = year)) +
+  filter(month_name %in% c("January", "July")) %>% 
+  ggplot(aes(x = year, y = average)) +
   geom_point(alpha = 0.5, size = 0.5) +
-  facet_grid(. ~ month)
+  facet_grid(. ~ month_name)
 ```
 
     ## `summarise()` regrouping output by 'id', 'year' (override with `.groups` argument)
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-13-1.png" width="90%" />
+<img src="hw3_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
+
+On average, the maximum temperatures in January are lower than they are
+in July. It seems that there are some discernible outliers, where the
+max temperature in January is much higher than the average. There are
+also certain outliers that are much colder in January. Similarly,there
+is one outlier which is much colder in July than the rest of the
+temperatures.
 
 Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing
 the distribution of snowfall values greater than 0 and less than 100
@@ -297,10 +356,12 @@ snow_dens_plot =
     snow > 0
   ) %>% 
   ggplot(aes(x = year, y = snow)) +
-  geom_violin() +
+  geom_smooth() +
   theme(legend.position = "none")
 
-tmax_tmin_plot / snow_dens_plot
+tmax_tmin_plot + snow_dens_plot
 ```
 
-<img src="hw3_files/figure-gfm/unnamed-chunk-14-1.png" width="90%" />
+    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
+
+<img src="hw3_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />

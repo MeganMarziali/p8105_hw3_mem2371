@@ -31,7 +31,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ```
 
 
-## Problem 1
+## Problem 1: Instacart
 
 #### Loading instacart dataset
 
@@ -41,13 +41,13 @@ The following code chunk loads the Instacart dataset
 data("instacart")
 ```
 
-This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns. Obervations are the level of items in orders by users. There are user / order variables -- user_id, order id, order day, and order hour. There are also item variables -- name, aisle, department and some numeric codes.
+This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns. Observations are the level of items in orders by users of instacart. There are user and order variables -- user_id, order id, order day, and order hour. There are also item variables -- name, aisle, department and some numeric codes.
 
 #### Answering specific questions
 
-The following code is to check how many aisles.
+The following code is to check how many aisles there are which are ordered from.
 
-```{r, message = FALSE, results = FALSE}
+```{r aisles, message = FALSE, results = FALSE}
 instacart %>% 
   count(aisle) %>% 
   arrange(desc(n))
@@ -55,7 +55,7 @@ instacart %>%
 
 Now, we need to make a plot of the number of orders purchased per aisle.
 
-```{r}
+```{r plot_aisles}
 instacart %>% 
   count(aisle) %>% 
   filter(n > 10000) %>% 
@@ -74,9 +74,9 @@ instacart %>%
     )
 ```
 
-Let's make a table!
+The next step is to make a table showing the most popular items.
 
-```{r}
+```{r pop_items}
 instacart %>% 
   filter(aisle %in% c(
     "baking ingredients", "dog food care", "packaged vegetables fruits")) %>% 
@@ -88,7 +88,7 @@ instacart %>%
   knitr::kable()
 ```
 
-Apples vs ice cream ... 
+The next step is to make a table of the mean hour at which specific items are ordered.
 
 ```{r, message = FALSE}
 instacart %>% 
@@ -98,11 +98,11 @@ instacart %>%
   pivot_wider(
     names_from = order_dow,
     values_from = mean_hour
-  )
+  ) %>% 
+  knitr::kable()
 ```
 
-
-## Problem 2
+## Problem 2: Accelerometer
 
 The following code is to load in the accelerometer data.
 
@@ -148,30 +148,30 @@ The value of the accelerometer readings as per the activity_count variable range
 The following code makes a table, aggregated by total activity per day.
 
 ```{r, message = FALSE}
-accel_agg = 
-  accel_df %>% 
-  group_by(day) %>% 
+accel_df %>% 
+  group_by(day_id, day) %>% 
   summarize(
     total_activity = sum(activity_count)
   ) %>% 
+  arrange(desc(total_activity)) %>% 
   knitr::kable(digits = 1)
 ```
 
-It seems that the patient is the least active on Saturdays, and the most active on Fridays. The patient is somewhat active on Mondays, Tuesdays, and Sundays but more active on Wednesdays, Thursdays and Fridays.
+It seems that the patient is the least active on Saturdays, and the most active on Fridays.
 
 ```{r, message = FALSE}
 accel_df %>% 
   group_by(day_id, day) %>% 
   ggplot(aes(x = minute, y = activity_count, color = day)) +
-  geom_line()
+  geom_line(alpha = 0.5) +
+  geom_smooth()
 ```
 
-**Want to see what activity looks like in each minute of each day
-Minute on the x axis, activity count on the y axis
+It seems that the patient is active more during the day on Sundays, and more active in the evening on Fridays. The time at which the patient is most active depends on the day.
 
-## Problem 3
+## Problem 3: NY NOAA
 
-The following code loads in the appropriate dataset.
+The following code loads in the NY NOAA dataset.
 
 ```{r}
 data("ny_noaa")
@@ -199,27 +199,40 @@ noaa_clean =
   )
 ```
 
+The following code assesses the most commonly observed values for snowfall.
+
 ```{r, message = FALSE}
 noaa_clean %>% 
   count(snow) %>% 
   arrange(desc(n))
 ```
 
-The most common observed value for snowfall is 0 mm of snowfall. The secondmost common value for snowfall is 25mm. This could suggest either seasonality of snowfall, or that some weather stations are located in areas that are less likely to have snowfall compared to others.
+The most common observed value for snowfall is 0 mm of snowfall. The second most common value for snowfall is 25mm. This could suggest either seasonality of snowfall, or that some weather stations are located in areas that are less likely to have snowfall compared to others.
 
 The following code makes a two-panel plot showing the average max temperature in January and July.
 
 ```{r}
-noaa_clean %>% 
-  group_by(id, year, month) %>% 
+month_df = 
+  tibble(
+    month = 1:12,
+    month_name = month.name)
+
+noaa_month = 
+  left_join(noaa_clean, month_df, by = "month") %>% 
+  select(-month)
+
+noaa_month %>% 
+  group_by(id, year, month_name) %>% 
   summarize(
     average = mean(tmax)
   ) %>% 
-  filter(month %in% c("6", "7")) %>% 
-  ggplot(aes(x = id, y = average, color = year)) +
+  filter(month_name %in% c("January", "July")) %>% 
+  ggplot(aes(x = year, y = average)) +
   geom_point(alpha = 0.5, size = 0.5) +
-  facet_grid(. ~ month)
+  facet_grid(. ~ month_name)
 ```
+
+On average, the maximum temperatures in January are lower than they are in July. It seems that there are some discernible outliers, where the max temperature in January is much higher than the average. There are also certain outliers that are much colder in January. Similarly,there is one outlier which is much colder in July than the rest of the temperatures.
 
 Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
 
@@ -238,8 +251,8 @@ snow_dens_plot =
     snow > 0
   ) %>% 
   ggplot(aes(x = year, y = snow)) +
-  geom_violin() +
+  geom_smooth() +
   theme(legend.position = "none")
 
-tmax_tmin_plot / snow_dens_plot
+tmax_tmin_plot + snow_dens_plot
 ```
