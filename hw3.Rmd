@@ -149,25 +149,32 @@ The following code makes a table, aggregated by total activity per day.
 
 ```{r, message = FALSE}
 accel_df %>% 
-  group_by(day_id, day) %>% 
+  group_by(day, day_id) %>% 
   summarize(
     total_activity = sum(activity_count)
   ) %>% 
-  arrange(desc(total_activity)) %>% 
+  pivot_wider(
+    names_from = "day",
+    values_from = "total_activity"
+  ) %>% 
   knitr::kable(digits = 1)
 ```
 
-It seems that the patient is the least active on Saturdays, and the most active on Fridays.
+It seems that the patient is the least active on Saturdays, particularly in the last two weeks. The patient seems the most active on Fridays, and potentially on Mondays. Certain days seem more consistent related to activity level than others (such as Tuesdays, Wednesdays and Thursdays).
 
 ```{r, message = FALSE}
 accel_df %>% 
-  group_by(day_id, day) %>% 
   ggplot(aes(x = minute, y = activity_count, color = day)) +
-  geom_line(alpha = 0.5) +
-  geom_smooth()
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Activity count over time of day",
+    x = "Minutes",
+    y = "Activity",
+    caption = "Data from patient accelerometer."
+    )
 ```
 
-It seems that the patient is active more during the day on Sundays, and more active in the evening on Fridays. The time at which the patient is most active depends on the day.
+It seems that the patient is active more during the day on Sundays, and more active in the evening on Fridays. The time at which the patient is most active depends on the day. The patient also seems to be more active during the week than on the weekend and more active at certain points in the day. There is a peak on Sundays around minute 500, and on Fridays at around minute 1250.
 
 ## Problem 3: NY NOAA
 
@@ -177,13 +184,14 @@ The following code loads in the NY NOAA dataset.
 data("ny_noaa")
 ```
 
+#### Cleaning and tidying
+
 The following code cleans and tidies the data.
 
 ```{r, message = FALSE}
 noaa_clean = 
   ny_noaa %>% 
   janitor::clean_names() %>% 
-  drop_na() %>% 
   separate(
     date,
     sep = "-",
@@ -199,19 +207,31 @@ noaa_clean =
   )
 ```
 
+The NOAA dataset is from the National Climactic Data Center, and includes variables `r names(noaa_clean)`. There are `r ncol(noaa_clean)` columns and `r nrow(noaa_clean)` rows in this dataset. Observations relate to climate measures of various weather stations.
+
+The time period of this data ranges from `r min(pull(noaa_clean, year))` to `r max(pull(noaa_clean, year))`. Ranges of climate variables are from: `r min(pull(noaa_clean, prcp), na.rm = TRUE)` to `r max(pull(noaa_clean, prcp), na.rm = TRUE)` for precipitation (mm); `r min(pull(noaa_clean, snow), na.rm = TRUE)` to `r max(pull(noaa_clean, snow), na.rm = TRUE)` for snowfall (mm); `r min(pull(noaa_clean, snwd), na.rm = TRUE)` to `r max(pull(noaa_clean, snwd), na.rm = TRUE)` for snow depth (mm);`r min(pull(noaa_clean, tmin), na.rm = TRUE)` to `r max(pull(noaa_clean, tmin), na.rm = TRUE)` for minimum temperatures (C); and, `r min(pull(noaa_clean, tmax), na.rm = TRUE)` to `r max(pull(noaa_clean, tmax), na.rm = TRUE)` for maximum temperatures (C).
+
+There are `r sum(is.na(noaa_clean))` total missing observations, which is a large amount of missingness for this dataset.
+
+#### Common snowfall
+
 The following code assesses the most commonly observed values for snowfall.
 
-```{r, message = FALSE}
+```{r, message = FALSE, results = FALSE}
 noaa_clean %>% 
   count(snow) %>% 
   arrange(desc(n))
 ```
 
-The most common observed value for snowfall is 0 mm of snowfall. The second most common value for snowfall is 25mm. This could suggest either seasonality of snowfall, or that some weather stations are located in areas that are less likely to have snowfall compared to others.
+The most common observed value for snowfall is 0 mm of snowfall. This could suggest either seasonality of snowfall, or that some weather stations are located in areas that are less likely to have snowfall compared to others.
+
+The second most common value is "NA", which is expected given the large amount of missingness observed in the dataset.
+
+#### Two-panel max temperature month plot
 
 The following code makes a two-panel plot showing the average max temperature in January and July.
 
-```{r}
+```{r message = FALSE, warning = FALSE}
 month_df = 
   tibble(
     month = 1:12,
@@ -229,20 +249,32 @@ noaa_month %>%
   filter(month_name %in% c("January", "July")) %>% 
   ggplot(aes(x = year, y = average)) +
   geom_point(alpha = 0.5, size = 0.5) +
-  facet_grid(. ~ month_name)
+  facet_grid(. ~ month_name) +
+  labs(
+    title = "Average maximum temperature over time for January and July",
+    y = "Average maximum temperature (C)",
+    caption = "Each dot indicates a weather station. Data from NOAA."
+  )
 ```
 
-On average, the maximum temperatures in January are lower than they are in July. It seems that there are some discernible outliers, where the max temperature in January is much higher than the average. There are also certain outliers that are much colder in January. Similarly,there is one outlier which is much colder in July than the rest of the temperatures.
+In general, the average maximum temperatures in January are lower than they are in July. It seems that there is one discernable outlier in January in 1981, where the temperature is very cold. There seem to be more outliers in July than in January. July outliers suggest abnormally cold temperatures.
+
+#### Two-panel tmax/tmin and snowfall distribution plot
 
 Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing the distribution of snowfall values greater than 0 and less than 100 separately by year
 
-```{r}
+```{r message = FALSE, warning = FALSE}
 tmax_tmin_plot = 
   noaa_clean %>% 
   select(tmax, tmin) %>% 
   ggplot(aes(x = tmax, y = tmin)) +
   geom_hex() +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(
+    x = "Maximum temperature (C)",
+    y = "Minimum temperature (C)",
+    title = "Maximum versus minimum temperature (C)"
+  )
 
 snow_dens_plot = 
   noaa_clean %>% 
@@ -250,9 +282,14 @@ snow_dens_plot =
     snow < 100,
     snow > 0
   ) %>% 
-  ggplot(aes(x = year, y = snow)) +
-  geom_smooth() +
-  theme(legend.position = "none")
+  ggplot(aes(group = year, x = year, y = snow)) +
+  geom_boxplot() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Year",
+    y = "Snowfall (mm)",
+    title = "Distribution of snowfall by year"
+  )
 
-tmax_tmin_plot + snow_dens_plot
+tmax_tmin_plot / snow_dens_plot
 ```

@@ -180,68 +180,80 @@ The following code makes a table, aggregated by total activity per day.
 
 ``` r
 accel_df %>% 
-  group_by(day_id, day) %>% 
+  group_by(day, day_id) %>% 
   summarize(
     total_activity = sum(activity_count)
   ) %>% 
-  arrange(desc(total_activity)) %>% 
+  pivot_wider(
+    names_from = "day",
+    values_from = "total_activity"
+  ) %>% 
   knitr::kable(digits = 1)
 ```
 
-| day\_id | day       | total\_activity |
-| ------: | :-------- | --------------: |
-|      16 | Monday    |        685910.0 |
-|       4 | Sunday    |        631105.0 |
-|      29 | Friday    |        620860.0 |
-|      10 | Saturday  |        607175.0 |
-|       8 | Friday    |        568839.0 |
-|      33 | Thursday  |        549658.0 |
-|       1 | Friday    |        480542.6 |
-|      12 | Thursday  |        474048.0 |
-|      21 | Wednesday |        468869.0 |
-|      15 | Friday    |        467420.0 |
-|      18 | Sunday    |        467052.0 |
-|      35 | Wednesday |        445366.0 |
-|      14 | Wednesday |        440962.0 |
-|      28 | Wednesday |        434460.0 |
-|      13 | Tuesday   |        423245.0 |
-|      11 | Sunday    |        422018.0 |
-|      23 | Monday    |        409450.0 |
-|      30 | Monday    |        389080.0 |
-|      17 | Saturday  |        382928.0 |
-|      20 | Tuesday   |        381507.0 |
-|       3 | Saturday  |        376254.0 |
-|      19 | Thursday  |        371230.0 |
-|      34 | Tuesday   |        367824.0 |
-|       5 | Thursday  |        355923.6 |
-|      26 | Thursday  |        340291.0 |
-|       7 | Wednesday |        340115.0 |
-|      27 | Tuesday   |        319568.0 |
-|       6 | Tuesday   |        307094.2 |
-|       9 | Monday    |        295431.0 |
-|      25 | Sunday    |        260617.0 |
-|      22 | Friday    |        154049.0 |
-|      32 | Sunday    |        138421.0 |
-|       2 | Monday    |         78828.1 |
-|      24 | Saturday  |          1440.0 |
-|      31 | Saturday  |          1440.0 |
+| day\_id |   Monday |  Tuesday | Wednesday | Thursday |   Friday | Saturday | Sunday |
+| ------: | -------: | -------: | --------: | -------: | -------: | -------: | -----: |
+|       2 |  78828.1 |       NA |        NA |       NA |       NA |       NA |     NA |
+|       9 | 295431.0 |       NA |        NA |       NA |       NA |       NA |     NA |
+|      16 | 685910.0 |       NA |        NA |       NA |       NA |       NA |     NA |
+|      23 | 409450.0 |       NA |        NA |       NA |       NA |       NA |     NA |
+|      30 | 389080.0 |       NA |        NA |       NA |       NA |       NA |     NA |
+|       6 |       NA | 307094.2 |        NA |       NA |       NA |       NA |     NA |
+|      13 |       NA | 423245.0 |        NA |       NA |       NA |       NA |     NA |
+|      20 |       NA | 381507.0 |        NA |       NA |       NA |       NA |     NA |
+|      27 |       NA | 319568.0 |        NA |       NA |       NA |       NA |     NA |
+|      34 |       NA | 367824.0 |        NA |       NA |       NA |       NA |     NA |
+|       7 |       NA |       NA |    340115 |       NA |       NA |       NA |     NA |
+|      14 |       NA |       NA |    440962 |       NA |       NA |       NA |     NA |
+|      21 |       NA |       NA |    468869 |       NA |       NA |       NA |     NA |
+|      28 |       NA |       NA |    434460 |       NA |       NA |       NA |     NA |
+|      35 |       NA |       NA |    445366 |       NA |       NA |       NA |     NA |
+|       5 |       NA |       NA |        NA | 355923.6 |       NA |       NA |     NA |
+|      12 |       NA |       NA |        NA | 474048.0 |       NA |       NA |     NA |
+|      19 |       NA |       NA |        NA | 371230.0 |       NA |       NA |     NA |
+|      26 |       NA |       NA |        NA | 340291.0 |       NA |       NA |     NA |
+|      33 |       NA |       NA |        NA | 549658.0 |       NA |       NA |     NA |
+|       1 |       NA |       NA |        NA |       NA | 480542.6 |       NA |     NA |
+|       8 |       NA |       NA |        NA |       NA | 568839.0 |       NA |     NA |
+|      15 |       NA |       NA |        NA |       NA | 467420.0 |       NA |     NA |
+|      22 |       NA |       NA |        NA |       NA | 154049.0 |       NA |     NA |
+|      29 |       NA |       NA |        NA |       NA | 620860.0 |       NA |     NA |
+|       3 |       NA |       NA |        NA |       NA |       NA |   376254 |     NA |
+|      10 |       NA |       NA |        NA |       NA |       NA |   607175 |     NA |
+|      17 |       NA |       NA |        NA |       NA |       NA |   382928 |     NA |
+|      24 |       NA |       NA |        NA |       NA |       NA |     1440 |     NA |
+|      31 |       NA |       NA |        NA |       NA |       NA |     1440 |     NA |
+|       4 |       NA |       NA |        NA |       NA |       NA |       NA | 631105 |
+|      11 |       NA |       NA |        NA |       NA |       NA |       NA | 422018 |
+|      18 |       NA |       NA |        NA |       NA |       NA |       NA | 467052 |
+|      25 |       NA |       NA |        NA |       NA |       NA |       NA | 260617 |
+|      32 |       NA |       NA |        NA |       NA |       NA |       NA | 138421 |
 
-It seems that the patient is the least active on Saturdays, and the most
-active on Fridays.
+It seems that the patient is the least active on Saturdays, particularly
+in the last two weeks. The patient seems the most active on Fridays, and
+potentially on Mondays. Certain days seem more consistent related to
+activity level than others (such as Tuesdays, Wednesdays and Thursdays).
 
 ``` r
 accel_df %>% 
-  group_by(day_id, day) %>% 
   ggplot(aes(x = minute, y = activity_count, color = day)) +
-  geom_line(alpha = 0.5) +
-  geom_smooth()
+  geom_smooth(se = FALSE) +
+  labs(
+    title = "Activity count over time of day",
+    x = "Minutes",
+    y = "Activity",
+    caption = "Data from patient accelerometer."
+    )
 ```
 
 <img src="hw3_files/figure-gfm/unnamed-chunk-6-1.png" width="90%" />
 
 It seems that the patient is active more during the day on Sundays, and
 more active in the evening on Fridays. The time at which the patient is
-most active depends on the day.
+most active depends on the day. The patient also seems to be more active
+during the week than on the weekend and more active at certain points in
+the day. There is a peak on Sundays around minute 500, and on Fridays at
+around minute 1250.
 
 ## Problem 3: NY NOAA
 
@@ -251,13 +263,14 @@ The following code loads in the NY NOAA dataset.
 data("ny_noaa")
 ```
 
+#### Cleaning and tidying
+
 The following code cleans and tidies the data.
 
 ``` r
 noaa_clean = 
   ny_noaa %>% 
   janitor::clean_names() %>% 
-  drop_na() %>% 
   separate(
     date,
     sep = "-",
@@ -273,6 +286,21 @@ noaa_clean =
   )
 ```
 
+The NOAA dataset is from the National Climactic Data Center, and
+includes variables id, year, month, day, prcp, snow, snwd, tmax, tmin.
+There are 9 columns and 2595176 rows in this dataset. Observations
+relate to climate measures of various weather stations.
+
+The time period of this data ranges from 1981 to 2010. Ranges of climate
+variables are from: 0 to 2286 for precipitation (mm); -13 to 10160 for
+snowfall (mm); 0 to 9195 for snow depth (mm);-59.4 to 60 for minimum
+temperatures (C); and, -38.9 to 60 for maximum temperatures (C).
+
+There are 3387623 total missing observations, which is a large amount of
+missingness for this dataset.
+
+#### Common snowfall
+
 The following code assesses the most commonly observed values for
 snowfall.
 
@@ -282,25 +310,15 @@ noaa_clean %>%
   arrange(desc(n))
 ```
 
-    ## # A tibble: 248 x 2
-    ##     snow       n
-    ##    <int>   <int>
-    ##  1     0 1112758
-    ##  2    25   15809
-    ##  3    13   12460
-    ##  4    51    9252
-    ##  5     5    5669
-    ##  6     8    5380
-    ##  7    76    5296
-    ##  8     3    5276
-    ##  9    38    5050
-    ## 10   102    3386
-    ## # … with 238 more rows
+The most common observed value for snowfall is 0 mm of snowfall. This
+could suggest either seasonality of snowfall, or that some weather
+stations are located in areas that are less likely to have snowfall
+compared to others.
 
-The most common observed value for snowfall is 0 mm of snowfall. The
-second most common value for snowfall is 25mm. This could suggest either
-seasonality of snowfall, or that some weather stations are located in
-areas that are less likely to have snowfall compared to others.
+The second most common value is “NA”, which is expected given the large
+amount of missingness observed in the dataset.
+
+#### Two-panel max temperature month plot
 
 The following code makes a two-panel plot showing the average max
 temperature in January and July.
@@ -323,19 +341,23 @@ noaa_month %>%
   filter(month_name %in% c("January", "July")) %>% 
   ggplot(aes(x = year, y = average)) +
   geom_point(alpha = 0.5, size = 0.5) +
-  facet_grid(. ~ month_name)
+  facet_grid(. ~ month_name) +
+  labs(
+    title = "Average maximum temperature over time for January and July",
+    y = "Average maximum temperature (C)",
+    caption = "Each dot indicates a weather station. Data from NOAA."
+  )
 ```
-
-    ## `summarise()` regrouping output by 'id', 'year' (override with `.groups` argument)
 
 <img src="hw3_files/figure-gfm/unnamed-chunk-10-1.png" width="90%" />
 
-On average, the maximum temperatures in January are lower than they are
-in July. It seems that there are some discernible outliers, where the
-max temperature in January is much higher than the average. There are
-also certain outliers that are much colder in January. Similarly,there
-is one outlier which is much colder in July than the rest of the
-temperatures.
+In general, the average maximum temperatures in January are lower than
+they are in July. It seems that there is one discernable outlier in
+January in 1981, where the temperature is very cold. There seem to be
+more outliers in July than in January. July outliers suggest abnormally
+cold temperatures.
+
+#### Two-panel tmax/tmin and snowfall distribution plot
 
 Making a two-panel plot showing (i) tmax and tmin and (ii) plot showing
 the distribution of snowfall values greater than 0 and less than 100
@@ -347,7 +369,12 @@ tmax_tmin_plot =
   select(tmax, tmin) %>% 
   ggplot(aes(x = tmax, y = tmin)) +
   geom_hex() +
-  theme(legend.position = "none")
+  theme(legend.position = "none") +
+  labs(
+    x = "Maximum temperature (C)",
+    y = "Minimum temperature (C)",
+    title = "Maximum versus minimum temperature (C)"
+  )
 
 snow_dens_plot = 
   noaa_clean %>% 
@@ -355,13 +382,16 @@ snow_dens_plot =
     snow < 100,
     snow > 0
   ) %>% 
-  ggplot(aes(x = year, y = snow)) +
-  geom_smooth() +
-  theme(legend.position = "none")
+  ggplot(aes(group = year, x = year, y = snow)) +
+  geom_boxplot() +
+  theme(legend.position = "none") +
+  labs(
+    x = "Year",
+    y = "Snowfall (mm)",
+    title = "Distribution of snowfall by year"
+  )
 
-tmax_tmin_plot + snow_dens_plot
+tmax_tmin_plot / snow_dens_plot
 ```
-
-    ## `geom_smooth()` using method = 'gam' and formula 'y ~ s(x, bs = "cs")'
 
 <img src="hw3_files/figure-gfm/unnamed-chunk-11-1.png" width="90%" />
